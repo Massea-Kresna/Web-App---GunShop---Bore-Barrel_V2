@@ -25,16 +25,22 @@ export default function ProfilePage({ onReplaySplash, onNavigate }) {
      setDrafts(getAllDraftIds().map(dId => ({ id: dId, ...loadDraft(dId) })))
   }
 
-  const handleRestore = (id) => {
-    if (window.confirm('Pulihkan perangkat keras ini kembali ke katalog utama?')) {
-      const newArchivesData = archives.filter(a => a.id !== id)
-      setArchives(newArchivesData)
-      localStorage.setItem('archived_guns_detail', JSON.stringify(newArchivesData))
-      const newArchiveIds = JSON.parse(localStorage.getItem('archived_guns') || '[]').filter(aId => aId !== id)
-      localStorage.setItem('archived_guns', JSON.stringify(newArchiveIds))
-      alert('Hardware berhasil dipulihkan!')
-    }
+const handleRestore = (id) => {
+  if (window.confirm('Pulihkan perangkat keras ini kembali ke katalog utama?')) {
+    // Hapus dari data arsip detail
+    const archives = JSON.parse(localStorage.getItem('archived_guns_detail') || '[]');
+    const newArchivesData = archives.filter(a => a.id !== id);
+    localStorage.setItem('archived_guns_detail', JSON.stringify(newArchivesData));
+
+    // Hapus dari daftar hitam ID arsip agar muncul kembali di useGuns
+    const archiveIds = JSON.parse(localStorage.getItem('archived_guns') || '[]');
+    const newArchiveIds = archiveIds.filter(aId => aId !== id);
+    localStorage.setItem('archived_guns', JSON.stringify(newArchiveIds));
+
+    alert('Hardware berhasil dipulihkan!');
+    window.location.reload(); // Refresh untuk memperbarui katalog
   }
+};
 
   return (
     <div className="profile-page">

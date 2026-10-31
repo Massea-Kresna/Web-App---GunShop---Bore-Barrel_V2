@@ -204,6 +204,15 @@ class GunService {
   /**
    * Delete product (Soft Delete override).
    */
+
+  async deleteGun(id) {
+  if (IS_SUPABASE) {
+    await apiClient.delete(`/rest/v1/products?id=eq.${id}`)
+    return { success: true }
+  }
+  return apiClient.delete(`/api/v1/recipes/${id}`)
+}
+
   async deleteGun(gunOrId) {
     try {
       // Mengecek apakah argumen yang dikirim adalah objek (berisi detail) atau sekadar ID
