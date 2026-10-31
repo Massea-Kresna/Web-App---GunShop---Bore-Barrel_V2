@@ -1,32 +1,39 @@
 import { useState, useEffect, useCallback } from 'react'
 import gunService from '../services/gunService'
 
-// ---------------------------------------------------------------------------
-// useGuns — fetch the paginated / filtered product list from the API.
-//
-// Returns { guns, loading, error, pagination, refetch }.
-// When the API is unreachable the `error` string will be set and `guns`
-// will remain an empty array so the UI can show a proper error state.
-// ---------------------------------------------------------------------------
+// 3. Objek Cache Global untuk Query Caching
+const gunCache = {}
 
 export function useGuns(params = {}) {
   const [guns, setGuns] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
   const [pagination, setPagination] = useState(null)
-
-  // Serialise params so the effect re-runs when they change.
+  
   const paramKey = JSON.stringify(params)
 
   const fetchGuns = useCallback(async () => {
+    // Kembalikan dari cache jika ada
+    if (gunCache[paramKey]) {
+      setGuns(gunCache[paramKey].data)
+      setPagination(gunCache[paramKey].pagination)
+      setLoading(false)
+      return
+    }
+
     try {
       setLoading(true)
       setError(null)
-
       const response = await gunService.getGuns(params)
-
       if (response.success) {
-        setGuns(response.data || [])
+        // 6. Filter data soft delete
+        const archives = JSON.parse(localStorage.getItem('archived_guns') || '[]')
+        const filteredData = (response.data || []).filter(g => !archives.includes(g.id))
+        
+        // Simpan ke memory cache
+        gunCache[paramKey] = { data: filteredData, pagination: response.pagination || null }
+        
+        setGuns(filteredData)
         setPagination(response.pagination || null)
       } else {
         setError(response.message || 'Failed to fetch products.')
@@ -47,12 +54,6 @@ export function useGuns(params = {}) {
   return { guns, loading, error, pagination, refetch: fetchGuns }
 }
 
-// ---------------------------------------------------------------------------
-// useGunById — fetch a single product by its UUID.
-//
-// Returns { gun, loading, error, refetch }.
-// ---------------------------------------------------------------------------
-
 export function useGunById(id) {
   const [gun, setGun] = useState(null)
   const [loading, setLoading] = useState(true)
@@ -66,9 +67,17 @@ export function useGunById(id) {
     try {
       setLoading(true)
       setError(null)
+      
+      // Filter soft delete
+      const archives = JSON.parse(localStorage.getItem('archived_guns') || '[]')
+      if (archives.includes(id)) {
+         setError('Product has been archived or deleted.')
+         setGun(null)
+         setLoading(false)
+         return
+      }
 
       const response = await gunService.getGunById(id)
-
       if (response.success) {
         setGun(response.data)
       } else {

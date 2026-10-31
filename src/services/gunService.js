@@ -198,12 +198,36 @@ class GunService {
   /**
    * Delete product.
    */
-  async deleteGun(id) {
-    if (IS_SUPABASE) {
-      await apiClient.delete(`/rest/v1/products?id=eq.${id}`)
-      return { success: true }
+/**
+   * Delete product (Soft Delete override).
+   */
+  /**
+   * Delete product (Soft Delete override).
+   */
+  async deleteGun(gunOrId) {
+    try {
+      // Mengecek apakah argumen yang dikirim adalah objek (berisi detail) atau sekadar ID
+      const isObject = typeof gunOrId === 'object' && gunOrId !== null;
+      const id = isObject ? gunOrId.id : gunOrId;
+      const gunData = isObject ? gunOrId : { id, name: 'Archived Hardware' };
+
+      // 1. Simpan detail lengkap untuk UI Arsip di Profile
+      const archivesData = JSON.parse(localStorage.getItem('archived_guns_detail') || '[]');
+      if (!archivesData.find(a => a.id === id)) {
+        archivesData.push({ ...gunData, archivedAt: new Date().toISOString() });
+        localStorage.setItem('archived_guns_detail', JSON.stringify(archivesData));
+      }
+
+      // 2. Simpan ID saja untuk filter query di useGuns.js
+      const archives = JSON.parse(localStorage.getItem('archived_guns') || '[]');
+      if (!archives.includes(id)) {
+        archives.push(id);
+        localStorage.setItem('archived_guns', JSON.stringify(archives));
+      }
+      return { success: true };
+    } catch (err) {
+      return { success: false, message: err.message };
     }
-    return apiClient.delete(`/api/v1/recipes/${id}`)
   }
 }
 
