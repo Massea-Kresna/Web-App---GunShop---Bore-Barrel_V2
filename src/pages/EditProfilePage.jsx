@@ -33,7 +33,6 @@ export default function EditProfilePage({ onBack }) {
     const result = userService.saveUserProfile(updated)
     if (result.success) {
       setFeedback('Profile successfully updated.')
-      // Kembali ke halaman profil setelah 1 detik
       setTimeout(() => {
         setFeedback('')
         onBack() 

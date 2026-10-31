@@ -49,7 +49,6 @@ export default function ProfilePage({ onReplaySplash, onNavigate }) {
               <Play size={14} /> Replay Intro
             </button>
           )}
-          {/* Tombol yang mengarah ke Halaman Edit Baru */}
           <button type="button" className="btn btn--primary btn--sm" onClick={() => onNavigate('EditProfile')}>
             <Edit3 size={14} /> Edit Profile
           </button>
@@ -94,7 +93,6 @@ export default function ProfilePage({ onReplaySplash, onNavigate }) {
 
       <section className="detail-section" style={{ marginTop: '24px' }}>
         <h2>Offline Drafts History</h2>
-        {/* ... List draf (sama seperti sebelumnya) ... */}
         {drafts.length > 0 ? (
           <ul className="review-list">
             {drafts.map(d => (
@@ -116,7 +114,51 @@ export default function ProfilePage({ onReplaySplash, onNavigate }) {
         )}
       </section>
 
-      {/* Bagian arsip, about, contact tetap sama */}
+      <section className="detail-section" style={{ marginTop: '24px' }}>
+        <h2>Archived Hardware</h2>
+        <p style={{ color: 'var(--steel)', fontSize: '0.9rem', marginBottom: '16px' }}>
+          Hardware yang dihapus (soft delete) disimpan di sini. Anda dapat memulihkannya kembali ke katalog.
+        </p>
+        
+        {archives.length > 0 ? (
+          <ul className="review-list">
+            {archives.map(item => (
+              <li key={item.id} className="review-item" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <div style={{ display: 'flex', gap: '14px', alignItems: 'center' }}>
+                  <img 
+                    src={item.image_url || item.image || '/guns/pistol.svg'} 
+                    alt={item.name} 
+                    style={{ width: '56px', height: '56px', objectFit: 'cover', borderRadius: '4px', border: '1px solid var(--line)' }} 
+                  />
+                  <div>
+                    <strong style={{ fontSize: '1.05rem' }}>{item.name}</strong>
+                    <div style={{ fontSize: '0.85rem', color: 'var(--steel)' }}>
+                      Diarsipkan pada: {item.archivedAt ? new Date(item.archivedAt).toLocaleDateString() : 'Unknown'}
+                    </div>
+                  </div>
+                </div>
+                <button className="btn btn--outline btn--sm" onClick={() => handleRestore(item.id)} title="Restore ke Katalog">
+                  <ArchiveRestore size={16} /> Restore
+                </button>
+              </li>
+            ))}
+          </ul>
+        ) : (
+          <p className="form-hint">Tidak ada hardware yang berada di dalam arsip saat ini.</p>
+        )}
+      </section>
+
+      <section className="detail-section" style={{ marginTop: '24px' }}>
+        <h2>About Bore & Barrel</h2>
+        <p>A one-room armory. Bore &amp; Barrel sells a short, honest list of firearms. Each piece is priced from the bench — no markup theatre, no filler.</p>
+      </section>
+
+      <section className="detail-section" style={{ marginTop: '24px' }}>
+        <h2>Contact & Headquarters</h2>
+        <p><strong>Location:</strong> 123 Range Road, Sector 7.</p>
+        <p><strong>Operational:</strong> Open Tuesday to Saturday, 10:00 AM to 18:00 PM.</p>
+        <p><strong>Comms:</strong> (555) 010-0100</p>
+      </section>
     </div>
   )
 }
