@@ -25,6 +25,25 @@ export default function ProfilePage({ onReplaySplash, onNavigate }) {
      setDrafts(getAllDraftIds().map(dId => ({ id: dId, ...loadDraft(dId) })))
   }
 
+  // Fungsi untuk menghapus data secara permanen (Hard Delete) dari arsip
+  const handlePermanentDelete = (id) => {
+    if (window.confirm('PERINGATAN: Hardware ini akan dihapus secara permanen dan tidak dapat dipulihkan. Lanjutkan?')) {
+      // Hapus dari penyimpanan detail arsip
+      const archives = JSON.parse(localStorage.getItem('archived_guns_detail') || '[]');
+      const newArchivesData = archives.filter(a => a.id !== id);
+      localStorage.setItem('archived_guns_detail', JSON.stringify(newArchivesData));
+
+      // Hapus dari daftar ID arsip
+      const archiveIds = JSON.parse(localStorage.getItem('archived_guns') || '[]');
+      const newArchiveIds = archiveIds.filter(aId => aId !== id);
+      localStorage.setItem('archived_guns', JSON.stringify(newArchiveIds));
+      
+      // Perbarui state agar tampilan langsung ter-refresh
+      setArchives(newArchivesData);
+      alert('Hardware berhasil dihapus secara permanen!');
+    }
+  };
+
 const handleRestore = (id) => {
   if (window.confirm('Pulihkan perangkat keras ini kembali ke katalog utama?')) {
     // Hapus dari data arsip detail
@@ -126,10 +145,10 @@ const handleRestore = (id) => {
           Hardware yang dihapus (soft delete) disimpan di sini. Anda dapat memulihkannya kembali ke katalog.
         </p>
         
-        {archives.length > 0 ? (
+{archives.length > 0 ? (
           <ul className="review-list">
             {archives.map(item => (
-              <li key={item.id} className="review-item" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <li key={item.id} className="review-item" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '10px' }}>
                 <div style={{ display: 'flex', gap: '14px', alignItems: 'center' }}>
                   <img 
                     src={item.image_url || item.image || '/guns/pistol.svg'} 
@@ -143,9 +162,16 @@ const handleRestore = (id) => {
                     </div>
                   </div>
                 </div>
-                <button className="btn btn--outline btn--sm" onClick={() => handleRestore(item.id)} title="Restore ke Katalog">
-                  <ArchiveRestore size={16} /> Restore
-                </button>
+
+                {/* Kumpulan Tombol Aksi: Restore & Hapus Permanen */}
+                <div style={{ display: 'flex', gap: '8px' }}>
+                  <button className="btn btn--outline btn--sm" onClick={() => handleRestore(item.id)} title="Restore ke Katalog">
+                    <ArchiveRestore size={16} /> Restore
+                  </button>
+                  <button className="btn btn--danger btn--sm" onClick={() => handlePermanentDelete(item.id)} title="Hapus Permanen">
+                    <Trash2 size={16} /> Hapus Permanen
+                  </button>
+                </div>
               </li>
             ))}
           </ul>
